@@ -598,7 +598,7 @@
         <div class="hero-container container">
             <div class="row align-items-center">
                 <div class="col-lg-6 order-2 order-lg-1">
-                    <span class="hero-greeting">Hello</span>
+                    <span class="hero-greeting"> Hello </span>
                     <h1>Nguyen Minh Khoi<span class="dot"> .</span></h1>
                     <p class="subtitle">Network &amp; Systems Engineer Intern · IoT Developer</p>
 
@@ -612,7 +612,7 @@
                     </div>
                     <div class="contact-mini-item">
                         <i class="fas fa-envelope"></i>
-                        <a href="/cdn-cgi/l/email-protection#f69d9e999f989bc7c0c6c5b6919b979f9ad895999b"><span class="__cf_email__" data-cfemail="4c2724232522217d7a7c7f0c2b212d2520622f2321">[email&#160;protected]</span></a>
+                        <a href="mailto:khoinm1603@gmail.com">khoinm1603@gmail.com</a>
                     </div>
                     <div class="contact-mini-item">
                         <i class="fas fa-map-marker-alt"></i>
@@ -855,7 +855,7 @@
                                         <div class="icon-box-pro"><i class="fas fa-envelope"></i></div>
                                         <div>
                                             <h6>Email</h6>
-                                            <span class="val"><a href="/cdn-cgi/l/email-protection#1e7576717770732f282e2d5e79737f7772307d7173"><span class="__cf_email__" data-cfemail="c4afacabadaaa9f5f2f4f784a3a9a5ada8eaa7aba9">[email&#160;protected]</span></a></span>
+                                            <span class="val"><a href="mailto:khoinm1603@gmail.com">khoinm1603@gmail.com</a></span>
                                         </div>
                                     </div>
                                     <div class="info-item-pro">
@@ -919,12 +919,28 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
     <script>
-        // ── Toggle project detail (FIX: function was missing) ──
+        // ── EmailJS Init ──
+        // HƯỚNG DẪN SETUP (3 bước, miễn phí):
+        // 1. Đăng ký tại https://www.emailjs.com
+        // 2. Add Email Service (Gmail) → lấy SERVICE_ID
+        // 3. Tạo Email Template → lấy TEMPLATE_ID
+        // 4. Vào Account → lấy PUBLIC_KEY
+        // Thay 3 giá trị bên dưới rồi bỏ comment dòng emailjs.init(...)
+
+        // emailjs.init("YOUR_PUBLIC_KEY"); // ← thay YOUR_PUBLIC_KEY
+
+        const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";   // ← thay
+        const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";  // ← thay
+        const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";    // ← thay
+
+        // ── Toggle project detail ──
         function toggleContent(id, btn) {
             const content = document.getElementById(id);
             const isOpen = content.classList.contains('show');
@@ -932,16 +948,64 @@
             btn.textContent = isOpen ? 'Detail' : 'Close';
         }
 
-        // ── Contact form → mailto ──
+        // ── Contact form → EmailJS ──
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const name    = document.getElementById('name').value;
-            const email   = document.getElementById('email').value;
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
-            const mailto  = `mailto:khoinm1603@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + message)}`;
-            window.location.href = mailto;
-            this.reset();
+
+            const btn = this.querySelector('.btn-send');
+            const originalText = btn.innerHTML;
+
+            // Nếu chưa setup EmailJS, fallback về mailto
+            if (EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+                const name    = document.getElementById('name').value;
+                const email   = document.getElementById('email').value;
+                const subject = document.getElementById('subject').value;
+                const message = document.getElementById('message').value;
+                const mailto  = 'mailto:khoinm1603@gmail.com'
+                    + '?subject=' + encodeURIComponent('[Portfolio] ' + subject)
+                    + '&body=' + encodeURIComponent(
+                        'From: ' + name + '\nEmail: ' + email + '\n\n' + message
+                    );
+                window.open(mailto);
+                this.reset();
+                return;
+            }
+
+            // Đang gửi...
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+
+            const templateParams = {
+                from_name:    document.getElementById('name').value,
+                from_email:   document.getElementById('email').value,
+                subject:      document.getElementById('subject').value,
+                message:      document.getElementById('message').value,
+                to_email:     'khoinm1603@gmail.com'
+            };
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function() {
+                    btn.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                    btn.style.background = '#10b981';
+                    document.getElementById('contactForm').reset();
+                    setTimeout(function() {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                    }, 3000);
+                })
+                .catch(function(error) {
+                    console.error('EmailJS error:', error);
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed — try again';
+                    btn.style.background = '#ef4444';
+                    setTimeout(function() {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                    }, 3000);
+                });
         });
 
         // ── Navbar scroll effect ──
